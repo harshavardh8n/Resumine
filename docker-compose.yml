@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: resumine-backend
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=gemini-2.0-flash
+      - MONGODB_URI=mongodb://mongo:27017/resumine
+      - JWT_SECRET=${JWT_SECRET:-super_secret_jwt_resumine_2025}
+      - CLIENT_URL=${CLIENT_URL:-http://localhost:3000}
+    depends_on:
+      - mongo
+    networks:
+      - resumine-network
+
+  mongo:
+    image: mongo:6.0
+    container_name: resumine-mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - resumine-network
+
+networks:
+  resumine-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
