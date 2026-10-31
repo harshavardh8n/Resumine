@@ -6,8 +6,8 @@ const axios = require('axios');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Access your API key as an environment variable
-const API_KEY = process.env.REACT_APP_API_KEY;
-const genAI = new GoogleGenerativeAI(API_KEY);
+const API_KEY = process.env.GEMINI_API_KEY || process.env.REACT_APP_API_KEY;
+const genAI = new GoogleGenerativeAI(API_KEY || "");
 
 async function fetchImageAsBase64(url) {
     try {

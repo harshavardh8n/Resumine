@@ -1,18 +1,14 @@
 const express = require("express");
 const router = express.Router();
-
+const fs = require('fs');
 const path = require('path');
-require('dotenv').config()
+require('dotenv').config();
 const axios = require('axios');
-
-
-
-// const analyseupload = require("../Controller/analysecontroller");
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 // Access your API key as an environment variable
-const API_KEY = process.env.REACT_APP_API_KEY;
-const genAI = new GoogleGenerativeAI(API_KEY);
+const API_KEY = process.env.GEMINI_API_KEY || process.env.REACT_APP_API_KEY;
+const genAI = new GoogleGenerativeAI(API_KEY || "");
 
 
 async function fetchImageAsBase64(url) {
@@ -89,13 +85,20 @@ router.post('/api/analyse', async (req, res) => {
 });
 
 
-    router.route('/askresume').get(async (req, res) => {
+    router.all('/askresume', async (req, res) => {
         try {
-            console.log(req.body);
-            if(imagename!=""){
-                console.log(imagename);
+            const prompt = req.body?.prompt || req.query?.prompt;
+            const imagename = req.body?.imagename || req.query?.imagename;
+
+            if (!prompt) {
+                return res.status(400).send("Please provide a prompt");
+            }
+
+            if (imagename) {
                 function fileToGenerativePart(filePath, mimeType) {
-                    const absolutePath = path.resolve(__dirname, filePath);
+                    const absolutePath = path.isAbsolute(filePath)
+                        ? filePath
+                        : path.resolve(__dirname, filePath);
                     if (fs.existsSync(absolutePath)) {
                         return {
                             inlineData: {
@@ -107,36 +110,27 @@ router.post('/api/analyse', async (req, res) => {
                         throw new Error(`File not found: ${absolutePath}`);
                     }
                 }
-                
+
                 // Initialize the Generative AI client
                 const model1 = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                // const {prompt} = req.body; 
-
-                const {prompt} = req.body;
-                console.log(prompt);
                 const imageParts = [
                     fileToGenerativePart(imagename, "image/jpg")
-                    //server\router\server\router\
                 ];
-                
+
                 // Generate content using the model
                 const result = await model1.generateContent([prompt, ...imageParts]);
                 const response = await result.response;
                 const text1 = await response.text();
-                
-                res.send(text1);
-                console.log(text1);
-                
+
+                return res.send(text1);
+            } else {
+                return res.status(400).send("Please provide an image name / path");
             }
-            else{
-                console.log("please submit image");
-                res.send("please provide image")
-            }
-            } catch (error) {
-                console.error("Error generating content:", error.message);
-                res.status(500).send("Error generating content: " + error.message);
-            }
-        });
+        } catch (error) {
+            console.error("Error generating content:", error.message);
+            return res.status(500).send("Error generating content: " + error.message);
+        }
+    });
     
     
     // Main function to run the AI generation
