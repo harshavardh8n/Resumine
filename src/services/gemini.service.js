@@ -1,4 +1,5 @@
 const axios = require('axios');
+const pdfParse = require('pdf-parse');
 const { getGeminiClient } = require('../config/gemini');
 const { env } = require('../config/env');
 const { ApiError } = require('../utils/apiError');
@@ -52,10 +53,25 @@ Evaluate the resume across:
 
 Provide an accurate, honest ATS score between 0 and 100 with comprehensive constructive feedback.`;
 
+    let contents = [prompt, filePart];
+
+    // High-performance shortcut for PDFs: Extract text directly so Gemini processes in ~1s instead of 15s+ multimodal OCR
+    if (fileBuffer && (mimeType === 'application/pdf' || fileBuffer.slice(0, 4).toString() === '%PDF')) {
+      try {
+        const parsed = await pdfParse(fileBuffer);
+        const extractedText = parsed.text ? parsed.text.trim() : '';
+        if (extractedText.length > 40) {
+          contents = [prompt, `Candidate Resume Content (Extracted Document Text):\n${extractedText}`];
+        }
+      } catch (pdfErr) {
+        console.warn('[GeminiService] PDF text extraction fallback to multimodal:', pdfErr.message);
+      }
+    }
+
     try {
       const response = await ai.models.generateContent({
         model: env.GEMINI_MODEL,
-        contents: [prompt, filePart],
+        contents,
         config: {
           responseMimeType: 'application/json',
           responseJsonSchema: atsAnalysisJsonSchema,
