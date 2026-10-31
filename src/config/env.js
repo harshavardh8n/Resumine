@@ -2,7 +2,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const env = {
-  PORT: process.env.PORT || 5000,
+  PORT: process.env.PORT ? parseInt(process.env.PORT, 10) : 5001,
   NODE_ENV: process.env.NODE_ENV || 'development',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || process.env.REACT_APP_API_KEY || '',
   GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
@@ -14,3 +14,4 @@ const env = {
 };
 
 module.exports = { env };
+

@@ -40,3 +40,4 @@ networks:
 volumes:
   mongo-data:
     driver: local
+

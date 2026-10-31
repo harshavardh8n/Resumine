@@ -9,3 +9,4 @@ router.post('/login', authLimiter, AuthController.login);
 router.get('/me', authenticate, AuthController.getMe);
 
 module.exports = { authRouter: router };
+

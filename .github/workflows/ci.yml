@@ -30,3 +30,4 @@ jobs:
           NODE_ENV: test
           GEMINI_API_KEY: dummy_ci_test_key
           JWT_SECRET: dummy_ci_jwt_secret
+

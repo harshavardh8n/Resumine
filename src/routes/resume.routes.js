@@ -33,3 +33,4 @@ router.get('/history', authenticate, ResumeController.getHistory);
 router.get('/:id', optionalAuth, ResumeController.getById);
 
 module.exports = { resumeRouter: router };
+
